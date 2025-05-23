@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pen Cap Warriors Arena</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom right, #111, #333);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    nav {
+      display: flex;
+      justify-content: space-around;
+      background-color: #111;
+      padding: 0.5rem;
+      border-bottom: 1px solid #444;
+      flex-wrap: wrap;
+    }
+    nav button {
+      background: #444;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      margin: 0.25rem;
+    }
+    nav button:hover {
+      background: #666;
+    }
+    .tab {
+      display: none;
+      padding: 1rem;
+    }
+    .active {
+      display: block;
+    }
+    .editor textarea, .editor input, .editor select {
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+    }
+    .editor button {
+      background: #28a745;
+      border: none;
+      padding: 0.5rem;
+      color: white;
+      cursor: pointer;
+      margin: 0.25rem 0;
+    }
+    .editor button:hover {
+      background: #218838;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.3rem 0.6rem;
+      margin: 0.2rem;
+      font-size: 0.9rem;
+      color: white;
+    }
+    .badge input {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center; background:#000; padding:1rem 0;">PEN CAP WARRIORS – OFFICIAL</h1>
+  <nav>
+    <button onclick="showTab('rankings')">🏆 Rankings</button>
+    <button onclick="showTab('tournament')">⚔️ Tournament</button>
+    <button onclick="showTab('skills')">⭐ Skill Points</button>
+    <button onclick="showTab('news')">📰 News</button>
+    <button onclick="startEdit()">✏️ Edit</button>
+    <button onclick="startDev()">👑 Developer</button>
+  </nav>
+
+  <div id="rankings" class="tab active"><h2></h2></div>
+  <div id="tournament" class="tab"><h2></h2></div>
+  <div id="skills" class="tab"><h2></h2></div>
+  <div id="news" class="tab"><h2></h2></div>
+  <div id="edit" class="tab"></div>
+  <div id="developer" class="tab"></div>
+
+  <script>
+    const defaultData = {
+      rankings: '',
+      tournament: '',
+      skills: '',
+      news: '',
+      badges: []
+    };
+
+    function loadData() {
+      for (let key of ['rankings', 'tournament', 'skills', 'news']) {
+        const data = localStorage.getItem(key) || defaultData[key];
+        document.querySelector(`#${key} h2`).innerText = data;
+      }
+      renderBadges();
+    }
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function startEdit() {
+      const key = prompt('Enter access code:');
+      if (key === '2688' || key === '2580') {
+        showTab('edit');
+        showEditor();
+      } else {
+        alert('Access denied.');
+      }
+    }
+
+    function showEditor() {
+      const editDiv = document.getElementById('edit');
+      editDiv.innerHTML = `
+        <div class="editor">
+          <label>🏆 Rankings</label>
+          <textarea id="edit-rankings">${document.querySelector('#rankings h2').innerText}</textarea>
+          <label>⚔️ Tournament</label>
+          <textarea id="edit-tournament">${document.querySelector('#tournament h2').innerText}</textarea>
+          <label>⭐ Skill Points</label>
+          <textarea id="edit-skills">${document.querySelector('#skills h2').innerText}</textarea>
+          <label>📰 News</label>
+          <textarea id="edit-news">${document.querySelector('#news h2').innerText}</textarea>
+          <button onclick="saveData()">Save</button>
+        </div>
+      `;
+    }
+
+    function saveData() {
+      const keys = ['rankings', 'tournament', 'skills', 'news'];
+      keys.forEach(id => {
+        const value = document.getElementById('edit-' + id).value;
+        localStorage.setItem(id, value);
+        document.querySelector(`#${id} h2`).innerText = value;
+      });
+      alert('Saved!');
+      showTab('rankings');
+    }
+
+    function startDev() {
+      const key = prompt('Enter access code:');
+      if (key === '2688' || key === '2580') {
+        showTab('developer');
+        showDeveloper();
+      } else {
+        alert('Access denied.');
+      }
+    }
+
+    function showDeveloper() {
+      const devDiv = document.getElementById('developer');
+      devDiv.innerHTML = `
+        <div class="editor">
+          <label>Name</label><br>
+          <input type="text" id="badge-name" />
+          <label>Color</label><br>
+          <input type="color" id="badge-color" />
+          <label>Shape</label><br>
+          <select id="badge-shape">
+            <option value="1rem">Round</option>
+            <option value="0.2rem">Soft</option>
+            <option value="0">Square</option>
+          </select><br>
+          <button onclick="addBadge()">Add Badge</button>
+          <button onclick="deleteSelectedBadges()">Delete Selected</button>
+          <h2>🏅 Given Badges</h2>
+          <div id="badge-list"></div>
+        </div>
+      `;
+      renderBadges();
+    }
+
+    function addBadge() {
+      const name = document.getElementById('badge-name').value;
+      const color = document.getElementById('badge-color').value;
+      const shape = document.getElementById('badge-shape').value;
+      if (!name) return alert("Name can't be empty!");
+      const badges = JSON.parse(localStorage.getItem('badges') || '[]');
+      badges.push({ name, color, shape });
+      localStorage.setItem('badges', JSON.stringify(badges));
+      renderBadges();
+    }
+
+    function deleteSelectedBadges() {
+      let badges = JSON.parse(localStorage.getItem('badges') || '[]');
+      const checkboxes = document.querySelectorAll('.badge input:checked');
+      const namesToDelete = Array.from(checkboxes).map(cb => cb.dataset.name);
+      badges = badges.filter(b => !namesToDelete.includes(b.name));
+      localStorage.setItem('badges', JSON.stringify(badges));
+      renderBadges();
+    }
+
+    function renderBadges() {
+      const badges = JSON.parse(localStorage.getItem('badges') || '[]');
+      const container = document.getElementById('badge-list');
+      if (container) container.innerHTML = '';
+      badges.forEach(b => {
+        const badge = document.createElement('label');
+        badge.className = 'badge';
+        badge.style.backgroundColor = b.color;
+        badge.style.borderRadius = b.shape;
+        badge.innerHTML = `<input type="checkbox" data-name="${b.name}" /> ${b.name}`;
+        if (container) container.appendChild(badge);
+      });
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
